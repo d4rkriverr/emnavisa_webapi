@@ -10,26 +10,17 @@ import (
 
 func CORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Allow any origin (you can restrict this to specific domains)
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", "http://emnaservices.online")       // Allow this origin
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS") // Allowed methods
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")     // Allowed headers
 
-		// Allow specific methods (GET, POST, PUT, DELETE, etc.)
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-
-		// Allow specific headers
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-		// Allow browsers to cache the preflight request for some time (in seconds)
-		w.Header().Set("Access-Control-Max-Age", "86400") // 1 day
-
-		// Handle preflight OPTIONS request
-		if r.Method == "OPTIONS" {
+		// Handle preflight requests
+		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
-		// Proceed to the next handler
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r) // Call the next handler
 	})
 }
 
