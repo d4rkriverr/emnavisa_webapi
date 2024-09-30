@@ -10,8 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type Service struct {
@@ -34,8 +32,9 @@ func (s *Service) Authenticate(username, password string) (int, error) {
 	} else if err != nil {
 		return 0, err
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	if err != nil {
+	sha := sha256.New()
+	sha.Write([]byte(password))
+	if hex.EncodeToString(sha.Sum(nil)) != hashedPassword {
 		return 0, errors.New("invalid password")
 	}
 	return userID, nil
@@ -43,9 +42,7 @@ func (s *Service) Authenticate(username, password string) (int, error) {
 func (s *Service) UserCreate(username, password string) error {
 	sha := sha256.New()
 	sha.Write([]byte(password))
-	query := `
-    INSERT INTO users (username, password) 
-    VALUES ($1, $2)`
+	query := `INSERT INTO users (username, password) VALUES ($1, $2)`
 
 	_, err := s.db.Exec(query, username, hex.EncodeToString(sha.Sum(nil)))
 	if err != nil {
