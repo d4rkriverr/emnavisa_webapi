@@ -11,7 +11,7 @@ import (
 func CORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Allow any origin (you can restrict this to specific domains)
-		w.Header().Set("Access-Control-Allow-Origin", "http://emnaservices.online")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		// Allow specific methods (GET, POST, PUT, DELETE, etc.)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
