@@ -3,6 +3,7 @@ package account
 import (
 	"emnavisa/webserver/infrastructure/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -33,6 +34,22 @@ func (handler *Handler) HandleUserInfo(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithSuccess(w, map[string]any{
 		"username": user.Username,
 	})
+}
+
+func (handler *Handler) HandleUserCreate(w http.ResponseWriter, r *http.Request) {
+	var creds UserLoginCredentials
+	err := json.NewDecoder(r.Body).Decode(&creds)
+	if err != nil || creds.Username == "" || creds.Password == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	err = handler.service.UserCreate(creds.Username, creds.Password)
+	if err != nil {
+		fmt.Println(err)
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid credentials")
+		return
+	}
+	utils.RespondWithSuccess(w, "created successfully")
 }
 
 func (handler *Handler) HandleUserLogin(w http.ResponseWriter, r *http.Request) {

@@ -2,6 +2,7 @@ package account
 
 import (
 	"crypto/md5"
+	"crypto/sha256"
 	"database/sql"
 	"emnavisa/webserver/infrastructure/kernel"
 	"emnavisa/webserver/infrastructure/models"
@@ -38,6 +39,19 @@ func (s *Service) Authenticate(username, password string) (int, error) {
 		return 0, errors.New("invalid password")
 	}
 	return userID, nil
+}
+func (s *Service) UserCreate(username, password string) error {
+	sha := sha256.New()
+	sha.Write([]byte(password))
+	query := `
+    INSERT INTO users (username, password) 
+    VALUES ($1, $2)`
+
+	_, err := s.db.Exec(query, username, hex.EncodeToString(sha.Sum(nil)))
+	if err != nil {
+		return fmt.Errorf("failed to create account: %v", err)
+	}
+	return nil
 }
 
 func (s *Service) GetUserByToken(token string) (models.Account, error) {

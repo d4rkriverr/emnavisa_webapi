@@ -16,6 +16,7 @@ func BuildAccountService(app *kernel.Application) {
 
 	// Register our service routes
 	app.Router.HandleFunc("POST /api/v2/account/auth", handler.HandleUserLogin)
+	// app.Router.HandleFunc("POST /api/v2/account/create", handler.HandleUserCreate)
 
 	app.Router.HandleFunc("GET /api/v2/account/info", midd.Protect(http.HandlerFunc(handler.HandleUserInfo)))
 }
