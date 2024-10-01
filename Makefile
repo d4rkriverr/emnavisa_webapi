@@ -11,3 +11,7 @@ build:
 run: build
 	@echo "Running the Go application..."
 	@./$(APP_NAME)
+
+deamon: build
+	@echo "start the deamon"
+	@nohup ./bin/myapp >server_logs.txt &
