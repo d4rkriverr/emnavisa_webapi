@@ -5,12 +5,18 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 )
 
 func CORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://emnaservices.online")       // Allow this origin
+		allowOrigin := "http://emnaservices.online"
+		if os.Getenv("IS_DEV_MODE") == "allow" {
+			allowOrigin = "*"
+		}
+
+		w.Header().Set("Access-Control-Allow-Origin", allowOrigin)                        // Allow this origin
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS") // Allowed methods
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")     // Allowed headers
 
