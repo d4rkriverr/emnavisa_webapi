@@ -34,6 +34,7 @@ func CORS(next http.Handler) http.Handler {
 type AuthedUser struct {
 	ID       string `json:"id"`
 	Username string `json:"username"`
+	Role     string `json:"role"`
 }
 
 type key int
@@ -67,8 +68,8 @@ func (s *AuthMiddleware) Protect(next http.Handler) http.HandlerFunc {
 		}
 
 		var user AuthedUser
-		query := "SELECT id, username FROM users WHERE access_token = $1"
-		err := s.db.QueryRow(query, tokenParts[1]).Scan(&user.ID, &user.Username)
+		query := "SELECT id, username, role FROM users WHERE access_token = $1"
+		err := s.db.QueryRow(query, tokenParts[1]).Scan(&user.ID, &user.Username, &user.Role)
 
 		if err == sql.ErrNoRows {
 			RespondWithError(w, http.StatusUnauthorized, "Invalid Authorization ErrNoRows")

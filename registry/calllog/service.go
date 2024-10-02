@@ -63,6 +63,50 @@ func (s *Service) GetAllCallsByAgent(agentName string, date time.Time) ([]models
 
 	return calls, nil
 }
+func (s *Service) GetAllCalls(date time.Time) ([]models.CallLog, error) {
+	calls := []models.CallLog{}
+
+	// SQL query to select all calls where the agent matches
+	query := `SELECT id, cin, name, phone, requested_job, requested_country, created_at, platform, agent, call_status, notes 
+	          FROM call_logs WHERE DATE(created_at) = $1 ORDER BY created_at DESC`
+
+	// Execute the query
+	rows, err := s.db.Query(query, date)
+	if err != nil {
+		log.Println("Error executing query:", err)
+		return calls, err
+	}
+	defer rows.Close()
+
+	// Iterate over the rows and populate the CallLog slice
+	for rows.Next() {
+		var call models.CallLog
+		err := rows.Scan(
+			&call.ID,
+			&call.CIN,
+			&call.Name,
+			&call.Phone,
+			&call.RequestedJob,
+			&call.RequestedCountry,
+			&call.CreatedAt,
+			&call.Platform,
+			&call.Agent,
+			&call.CallStatus,
+			&call.Notes,
+		)
+		if err != nil {
+			return calls, err
+		}
+		calls = append(calls, call)
+	}
+
+	// Check for errors after iterating over rows
+	if err = rows.Err(); err != nil {
+		return calls, err
+	}
+
+	return calls, nil
+}
 
 func (s *Service) CreateNewCallLog(callLog models.CallLog) error {
 	// SQL query to insert a new call log
@@ -116,5 +160,14 @@ func (s *Service) UpdateCallLog(agent string, updatedCallLog models.CallLog) err
 		return fmt.Errorf("failed to update call log: %w", err)
 	}
 
+	return nil
+}
+
+func (s *Service) DeleteCallLog(agent, id string) error {
+	query := `DELETE FROM call_logs WHERE agent = $1 AND id = $2`
+	_, err := s.db.Exec(query, agent, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete call log: %w", err)
+	}
 	return nil
 }

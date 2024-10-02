@@ -33,6 +33,7 @@ func (handler *Handler) HandleUserInfo(w http.ResponseWriter, r *http.Request) {
 	// Return the user information as a JSON response
 	utils.RespondWithSuccess(w, map[string]any{
 		"username": user.Username,
+		"r":        user.Role,
 	})
 }
 

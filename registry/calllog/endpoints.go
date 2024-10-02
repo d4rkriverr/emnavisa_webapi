@@ -23,25 +23,40 @@ func (handler *Handler) GetAllCalls(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve user info")
 		return
 	}
+	if user.Role != "ADMN" {
+		if user.Role != "CACE" {
+			utils.RespondWithError(w, http.StatusUnauthorized, "unauthorized access")
+			return
+		}
+	}
+
 	var err error
 	filterDate := time.Now()
 	if dateStr := r.URL.Query().Get("d"); dateStr != "" {
 		filterDate, err = time.Parse("2006-01-02", r.URL.Query().Get("d")) // Expected format: YYYY-MM-DD
 		if err != nil {
-			fmt.Println(err)
 			utils.RespondWithError(w, http.StatusBadRequest, "Invalid date format")
 			return
 		}
 	}
-	fmt.Println(filterDate)
 
 	// check if can see all or only the his own calls
-	//
-	calls, err := handler.service.GetAllCallsByAgent(user.Username, filterDate)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve calls")
-		return
+	var calls []models.CallLog
+	if user.Role == "ADMN" {
+		calls, err = handler.service.GetAllCalls(filterDate)
+		if err != nil {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve calls")
+			return
+		}
+	} else {
+		calls, err = handler.service.GetAllCallsByAgent(user.Username, filterDate)
+		if err != nil {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve calls")
+			return
+		}
 	}
+	//
+
 	// Get Basic Data
 	countries := []map[string]string{
 		{"name": "Romania"},
@@ -105,7 +120,7 @@ func (handler *Handler) CreateCall(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithSuccess(w, map[string]any{"message": "Call log created successfully"})
 }
 
-func (handler *Handler) EditCallLog(w http.ResponseWriter, r *http.Request) {
+func (handler *Handler) EditCall(w http.ResponseWriter, r *http.Request) {
 	user, ok := r.Context().Value(utils.UserContextKey).(utils.AuthedUser)
 	if !ok {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve user info")
@@ -124,4 +139,26 @@ func (handler *Handler) EditCallLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.RespondWithSuccess(w, map[string]any{"message": "Call log updated successfully"})
+}
+
+func (handler *Handler) DeleteCall(w http.ResponseWriter, r *http.Request) {
+	user, ok := r.Context().Value(utils.UserContextKey).(utils.AuthedUser)
+	if !ok {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve user info")
+		return
+	}
+
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	err := handler.service.DeleteCallLog(user.Username, id)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Failed to delete call log", http.StatusInternalServerError)
+		return
+	}
+	utils.RespondWithSuccess(w, map[string]any{"message": "Call log deleted successfully"})
 }
