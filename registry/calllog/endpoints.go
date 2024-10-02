@@ -104,3 +104,24 @@ func (handler *Handler) CreateCall(w http.ResponseWriter, r *http.Request) {
 	}
 	utils.RespondWithSuccess(w, map[string]any{"message": "Call log created successfully"})
 }
+
+func (handler *Handler) EditCallLog(w http.ResponseWriter, r *http.Request) {
+	user, ok := r.Context().Value(utils.UserContextKey).(utils.AuthedUser)
+	if !ok {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve user info")
+		return
+	}
+	var updatedCallLog models.CallLog
+	if err := json.NewDecoder(r.Body).Decode(&updatedCallLog); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	err := handler.service.UpdateCallLog(user.Username, updatedCallLog)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Failed to update call log", http.StatusInternalServerError)
+		return
+	}
+	utils.RespondWithSuccess(w, map[string]any{"message": "Call log updated successfully"})
+}

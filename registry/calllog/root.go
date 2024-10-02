@@ -13,4 +13,5 @@ func BuildCallsService(app *kernel.Application) {
 
 	app.Router.HandleFunc("GET /api/v2/calls/all", midd.Protect(http.HandlerFunc(handler.GetAllCalls)))
 	app.Router.HandleFunc("POST /api/v2/calls/create", midd.Protect(http.HandlerFunc(handler.CreateCall)))
+	app.Router.HandleFunc("POST /api/v2/calls/update", midd.Protect(http.HandlerFunc(handler.EditCallLog)))
 }

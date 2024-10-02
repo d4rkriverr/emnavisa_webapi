@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"emnavisa/webserver/infrastructure/kernel"
 	"emnavisa/webserver/infrastructure/models"
+	"fmt"
 	"log"
 	"time"
 )
@@ -86,6 +87,33 @@ func (s *Service) CreateNewCallLog(callLog models.CallLog) error {
 	if err != nil {
 		log.Println("Error inserting new call log:", err)
 		return err
+	}
+
+	return nil
+}
+
+func (s *Service) UpdateCallLog(agent string, updatedCallLog models.CallLog) error {
+	query := `
+        UPDATE call_logs
+        SET cin = $1, name = $2, phone = $3, requested_job = $4, 
+            requested_country = $5, call_status = $6, platform = $7, 
+            notes = $8
+        WHERE agent = $9 AND id = $10
+    `
+	_, err := s.db.Exec(query,
+		updatedCallLog.CIN,
+		updatedCallLog.Name,
+		updatedCallLog.Phone,
+		updatedCallLog.RequestedJob,
+		updatedCallLog.RequestedCountry,
+		updatedCallLog.CallStatus,
+		updatedCallLog.Platform,
+		updatedCallLog.Notes,
+		agent,
+		updatedCallLog.ID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update call log: %w", err)
 	}
 
 	return nil
